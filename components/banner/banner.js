@@ -1,6 +1,6 @@
 import styles from './banner.module.css';
 
-export const Banner = ({ buttonText, handleOnClick }) => {
+const Banner = ({ buttonText, handleOnClick }) => {
 	return (
 		<div className={styles.container}>
 			<h1 className={styles.title}>
@@ -16,3 +16,5 @@ export const Banner = ({ buttonText, handleOnClick }) => {
 		</div>
 	);
 };
+
+export default Banner;
