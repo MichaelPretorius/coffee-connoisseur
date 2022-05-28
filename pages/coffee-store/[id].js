@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -14,6 +14,7 @@ import { fetcher, isEmpty } from '../../utils';
 const CoffeeStore = props => {
 	const [coffeeStore, setCoffeeStore] = useState(props.coffeeStore);
 	// const [voting, setVoting] = useState(0);
+	const didInitRef = useRef(false);
 	const router = useRouter();
 	const id = router.query.id;
 
@@ -44,19 +45,20 @@ const CoffeeStore = props => {
 	};
 
 	useEffect(() => {
-		console.log('ran1');
-		if (isEmpty(props.coffeeStore)) {
-			console.log('ran2');
-			if (coffeeStores.length > 0) {
-				const coffeeStoreFromContext = coffeeStores.find(store => store.id == id);
+		if (didInitRef.current === false) {
+			didInitRef.current = true;
+			if (isEmpty(props.coffeeStore)) {
+				if (coffeeStores.length > 0) {
+					const coffeeStoreFromContext = coffeeStores.find(store => store.id == id);
 
-				if (coffeeStoreFromContext) {
-					setCoffeeStore(coffeeStoreFromContext);
-					handleCreateCoffeeStore(coffeeStoreFromContext);
+					if (coffeeStoreFromContext) {
+						setCoffeeStore(coffeeStoreFromContext);
+						handleCreateCoffeeStore(coffeeStoreFromContext);
+					}
 				}
+			} else {
+				handleCreateCoffeeStore(props.coffeeStore);
 			}
-		} else {
-			handleCreateCoffeeStore(props.coffeeStore);
 		}
 	}, [id]);
 
