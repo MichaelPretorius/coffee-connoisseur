@@ -21,7 +21,8 @@ const Home = ({ staticCoffeeStores }) => {
 		if (latLong) {
 			const getCoffeeStores = async () => {
 				try {
-					const stores = await fetchCoffeeStores(latLong, 30);
+					const res = await fetch(`/api/getCoffeeStoresByLocation?latLong=${latLong}&limit=30`);
+					const stores = await res.json();
 					dispatch({ type: ACTION_TYPES.SET_COFFEE_STORES, payload: stores });
 					setError(null);
 				} catch (error) {
