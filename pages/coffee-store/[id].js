@@ -4,17 +4,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import cls from 'classnames';
+import useSWR from 'swr';
 
 import styles from '../../styles/coffee-store.module.css';
 import { fetchCoffeeStores } from '../../lib/coffee-stores';
 import { StoreContext } from '../../store/store-context';
-import { isEmpty } from '../../utils';
+import { fetcher, isEmpty } from '../../utils';
 
 const CoffeeStore = props => {
 	const [coffeeStore, setCoffeeStore] = useState(props.coffeeStore);
+	// const [voting, setVoting] = useState(0);
 	const router = useRouter();
-
-	if (router.isFallback) return <div>Loading...</div>;
 	const id = router.query.id;
 
 	const {
@@ -31,22 +31,22 @@ const CoffeeStore = props => {
 				neighbourhood: neighbourhood || '',
 				address: address || '',
 			};
-			const res = await fetch('/api/createCoffeeStore', {
+			await fetch('/api/createCoffeeStore', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify(data),
 			});
-
-			const dbCoffeeStore = res.json();
 		} catch (error) {
 			console.error('Error creating coffee store ', error);
 		}
 	};
 
 	useEffect(() => {
+		console.log('ran1');
 		if (isEmpty(props.coffeeStore)) {
+			console.log('ran2');
 			if (coffeeStores.length > 0) {
 				const coffeeStoreFromContext = coffeeStores.find(store => store.id == id);
 
@@ -58,13 +58,40 @@ const CoffeeStore = props => {
 		} else {
 			handleCreateCoffeeStore(props.coffeeStore);
 		}
-	}, [id, props.coffeeStore]);
+	}, [id]);
 
-	const { name, imgUrl, address, neighborhood } = coffeeStore;
+	const { data, error } = useSWR(`/api/getCoffeeStoreById?id=${id}`, fetcher);
 
-	const handleUpvoteButton = () => {
-		console.log('handleUpvoteButton');
+	useEffect(() => {
+		if (data && data.length > 0) {
+			setCoffeeStore(data[0]);
+			// setVoting(data[0].voting);
+		}
+	}, [data]);
+
+	const handleUpvoteButton = async () => {
+		try {
+			const res = await fetch('/api/favouriteCoffeeStoreById', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ id }),
+			});
+			const dbCoffeeStore = await res.json();
+			if (dbCoffeeStore && dbCoffeeStore.length > 0) {
+				// setVoting(voting + 1);
+				setCoffeeStore(dbCoffeeStore[0]);
+			}
+		} catch (error) {
+			console.error('Error upvoting coffee store ', error);
+		}
 	};
+
+	if (error) return <div>Something went wrong retrieving coffee store page.</div>;
+	if (router.isFallback || !coffeeStore) return <div>Loading...</div>;
+
+	const { name = '', imgUrl = '', address = '', neighborhood = '', voting = 0 } = coffeeStore;
 
 	return (
 		<div className={styles.layout}>
@@ -107,7 +134,7 @@ const CoffeeStore = props => {
 					)}
 					<div className={styles.iconWrapper}>
 						<Image src="/static/icons/star.svg" width={24} height={24} />
-						<p className={styles.text}>5</p>
+						<p className={styles.text}>{voting}</p>
 					</div>
 
 					<button className={styles.upvoteButton} onClick={handleUpvoteButton}>
