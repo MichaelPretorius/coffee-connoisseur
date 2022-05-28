@@ -55,7 +55,7 @@ const Home = ({ staticCoffeeStores }) => {
 				{error && <p>Something went wrong: {error}</p>}
 
 				<div className={styles.heroImage}>
-					<Image src="/static/hero-image.png" width={700} height={400} />
+					<Image src="/static/hero-image.png" width={700} height={400} alt="hero image" />
 				</div>
 
 				{coffeeStores.length > 0 && (
